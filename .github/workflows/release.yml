@@ -23,7 +23,7 @@ env:
   DOTNET_NOLOGO: "1"
   CONFIGURATION: Release
   FRAMEWORK: net11.0-android37.0
-  ANDROID_API: "37"
+  ANDROID_API: "37.0"
   BUILD_TOOLS: "37.0.0"
 
 jobs:
