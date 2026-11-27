@@ -33,8 +33,21 @@ jobs:
     timeout-minutes: 45
 
     steps:
+      # The upstream tree stores values-en-rGB/strings.xml as symlinks, but on
+      # this fork the link blobs contain the full XML. Linux cannot create a
+      # symlink whose target is a 30 KB XML document, so disable symlink
+      # checkout and materialize the localized files after checkout.
+      - name: Disable symlink checkout
+        run: git config --global core.symlinks false
+
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Materialize localized strings
+        run: |
+          set -euo pipefail
+          cp Stratum.Droid/Resources/values/strings.xml Stratum.Droid/Resources/values-en-rGB/strings.xml
+          cp Stratum.WearOS/Resources/values/strings.xml Stratum.WearOS/Resources/values-en-rGB/strings.xml
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
