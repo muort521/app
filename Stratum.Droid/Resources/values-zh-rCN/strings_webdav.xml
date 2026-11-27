@@ -29,5 +29,10 @@
     <string name="webdavMenuRestore">从 WebDAV 恢复</string>
     <string name="webdavSummaryDisabled">已停用</string>
     <string name="webdavSummaryNotConfigured">未配置</string>
+    <string name="webdavNotificationChannel">云备份状态</string>
+    <string name="webdavBackupSuccessTitle">云备份完成</string>
+    <string name="webdavBackupFailureTitle">云备份失败</string>
+    <string name="webdavBackupSuccessText">已上传 %1$s</string>
+    <string name="webdavBackupFailureText">上传失败：%1$s</string>
 </resources>
 

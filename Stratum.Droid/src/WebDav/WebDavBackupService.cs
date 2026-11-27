@@ -39,12 +39,14 @@ namespace Stratum.Droid.WebDav
                 await client.UploadAsync(fileName, data);
                 config.LastStatus = $"已上传 {fileName}";
                 Log.Information("WebDAV upload succeeded: {FileName}", fileName);
+                WebDavNotifier.NotifySuccess(context, fileName);
                 return true;
             }
             catch (Exception e)
             {
                 config.LastStatus = $"上传失败：{e.Message}";
                 Log.Error(e, "WebDAV upload failed: {FileName}", fileName);
+                WebDavNotifier.NotifyFailure(context, e.Message);
                 return false;
             }
         }

@@ -29,5 +29,10 @@
     <string name="webdavMenuRestore">From WebDAV</string>
     <string name="webdavSummaryDisabled">Disabled</string>
     <string name="webdavSummaryNotConfigured">Not configured</string>
+    <string name="webdavNotificationChannel">Cloud backup status</string>
+    <string name="webdavBackupSuccessTitle">Cloud backup completed</string>
+    <string name="webdavBackupFailureTitle">Cloud backup failed</string>
+    <string name="webdavBackupSuccessText">Uploaded %1$s</string>
+    <string name="webdavBackupFailureText">Upload failed: %1$s</string>
 </resources>
 
