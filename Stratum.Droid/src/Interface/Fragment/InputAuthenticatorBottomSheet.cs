@@ -104,15 +104,32 @@ namespace Stratum.Droid.Interface.Fragment
             _usernameText.SetFilters(
                 new IInputFilter[] { new InputFilterLengthFilter(Authenticator.UsernameMaxLength) });
 
-            _typeAdapter = ArrayAdapter.CreateFromResource(view.Context, Resource.Array.authTypes,
-                Resource.Layout.listItemDropdown);
+            // 不用 ArrayAdapter.CreateFromResource：它在 TrimMode=full + R8 的 Release 包里
+            // 会通过反射创建 ArrayAdapter<T> 的 peer，触发 Acc_CreateGeneric。
+            // 直接构造泛型适配器，让裁剪器和 AOT 都能看到具体类型。
+            var typeNames = view.Context.Resources.GetStringArray(Resource.Array.authTypes);
+            var typeItems = new Java.Lang.ICharSequence[typeNames.Length];
+            for (var i = 0; i < typeNames.Length; i++)
+            {
+                typeItems[i] = new Java.Lang.String(typeNames[i]);
+            }
+
+            _typeAdapter = new ArrayAdapter<Java.Lang.ICharSequence>(view.Context,
+                Resource.Layout.listItemDropdown, typeItems);
             _typeText = (MaterialAutoCompleteTextView) _typeLayout.EditText;
             _typeText.Adapter = _typeAdapter;
             _typeText.SetText((ICharSequence) _typeAdapter.GetItem(0), false);
             _typeText.ItemClick += OnTypeItemClick;
 
-            _algorithmAdapter = ArrayAdapter.CreateFromResource(view.Context, Resource.Array.authAlgorithms,
-                Resource.Layout.listItemDropdown);
+            var algorithmNames = view.Context.Resources.GetStringArray(Resource.Array.authAlgorithms);
+            var algorithmItems = new Java.Lang.ICharSequence[algorithmNames.Length];
+            for (var i = 0; i < algorithmNames.Length; i++)
+            {
+                algorithmItems[i] = new Java.Lang.String(algorithmNames[i]);
+            }
+
+            _algorithmAdapter = new ArrayAdapter<Java.Lang.ICharSequence>(view.Context,
+                Resource.Layout.listItemDropdown, algorithmItems);
             _algorithmText = (MaterialAutoCompleteTextView) _algorithmLayout.EditText;
             _algorithmText.Adapter = _algorithmAdapter;
             _algorithmText.ItemClick += OnAlgorithmItemClick;
