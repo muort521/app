@@ -10,13 +10,22 @@ name: Release (fork)
 #   KEYSTORE_KEY_PASS key password
 
 on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "发布版本号（带 v，例如 v1.7.0）"
+        required: true
+        type: string
   push:
     tags:
       - "v*"
-  workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
@@ -33,6 +42,37 @@ jobs:
     timeout-minutes: 45
 
     steps:
+      - name: Resolve release version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          RAW="$(printf '%s' "${INPUT_VERSION:-$REF_NAME}" | tr -d '[:space:]')"
+          case "$RAW" in
+            v*) TAG="$RAW" ;;
+            *)  TAG="v$RAW" ;;
+          esac
+
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::版本号格式必须是 vX.Y.Z，例如 v1.7.0（收到：$RAW）"
+            exit 1
+          fi
+
+          VERSION_NO="${TAG#v}"
+          MAJOR="${VERSION_NO%%.*}"
+          REST="${VERSION_NO#*.}"
+          MINOR="${REST%%.*}"
+          PATCH="${REST#*.}"
+          VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))
+          APK_NAME="Stratum-WebDAV-${VERSION_NO}-release.apk"
+
+          echo "VERSION_TAG=$TAG" >> "$GITHUB_ENV"
+          echo "VERSION_NO=$VERSION_NO" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
+          echo "APK_NAME=$APK_NAME" >> "$GITHUB_ENV"
+          echo "发布版本：$TAG → versionName=$VERSION_NO, versionCode=$VERSION_CODE"
+
       # The upstream tree stores values-en-rGB/strings.xml as symlinks, but on
       # this fork the link blobs contain the full XML. Linux cannot create a
       # symlink whose target is a 30 KB XML document, so disable symlink
@@ -41,7 +81,7 @@ jobs:
         run: git config --global core.symlinks false
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Materialize localized strings
         run: |
@@ -49,14 +89,22 @@ jobs:
           cp Stratum.Droid/Resources/values/strings.xml Stratum.Droid/Resources/values-en-rGB/strings.xml
           cp Stratum.WearOS/Resources/values/strings.xml Stratum.WearOS/Resources/values-en-rGB/strings.xml
 
+      - name: Set APK version
+        run: |
+          set -euo pipefail
+          MANIFEST="Stratum.Droid/Properties/AndroidManifest.xml"
+          sed -i "s/android:versionName=\"[^\"]*\"/android:versionName=\"$VERSION_NO\"/" "$MANIFEST"
+          sed -i "s/android:versionCode=\"[^\"]*\"/android:versionCode=\"$VERSION_CODE\"/" "$MANIFEST"
+          grep -E 'android:versionName|android:versionCode' "$MANIFEST"
+
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
 
       - name: Set up .NET 11
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "11.0.x"
 
@@ -70,8 +118,8 @@ jobs:
           echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
           echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
           SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
-          yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" --channel=3 --install "platform-tools" "platforms;android-${ANDROID_API}" "build-tools;${BUILD_TOOLS}"
+          yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null 2>&1 || true
+          "$SDKMANAGER" --sdk_root="$SDK_ROOT" --channel=3 --install "platform-tools" "platforms;android-${ANDROID_API}" "build-tools;${BUILD_TOOLS}"
 
       - name: Restore NuGet packages
         run: dotnet restore Stratum.Droid/Stratum.Droid.csproj
@@ -84,7 +132,9 @@ jobs:
             -f "$FRAMEWORK" \
             --no-restore \
             -p:AndroidSdkDirectory="$ANDROID_SDK_ROOT" \
-            -p:JavaSdkDirectory="$JAVA_HOME"
+            -p:JavaSdkDirectory="$JAVA_HOME" \
+            -p:ApplicationDisplayVersion="$VERSION_NO" \
+            -p:ApplicationVersion="$VERSION_CODE"
 
       - name: Prepare signing key
         env:
@@ -118,20 +168,30 @@ jobs:
             --key-pass env:KEYSTORE_KEY_PASS \
             --out "$RUNNER_TEMP/stratum-signed.apk" \
             "$RUNNER_TEMP/stratum-aligned.apk"
-          "$SDK_ROOT/build-tools/$BUILD_TOOLS/apksigner" verify "$RUNNER_TEMP/stratum-signed.apk"
+
+      - name: Verify APK version and signature
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          AAPT2="$SDK_ROOT/build-tools/$BUILD_TOOLS/aapt2"
+          BADGING="$("$AAPT2" dump badging "$RUNNER_TEMP/stratum-signed.apk")"
+          echo "$BADGING" | grep -E "package:|versionCode|versionName"
+          echo "$BADGING" | grep -Fq "versionName='$VERSION_NO'" || {
+            echo "::error::APK versionName 与发布版本 $VERSION_NO 不一致"
+            exit 1
+          }
+          echo "$BADGING" | grep -Fq "versionCode='$VERSION_CODE'" || {
+            echo "::error::APK versionCode 与发布版本 $VERSION_CODE 不一致"
+            exit 1
+          }
+          "$SDK_ROOT/build-tools/$BUILD_TOOLS/apksigner" verify --print-certs "$RUNNER_TEMP/stratum-signed.apk" | head -n 5
 
       - name: Name APK
         run: |
           set -euo pipefail
-          VERSION_NAME=$(sed -n 's/.*android:versionName="\([^"]*\)".*/\1/p' Stratum.Droid/Properties/AndroidManifest.xml | head -1)
-          VERSION_CODE=$(sed -n 's/.*android:versionCode="\([^"]*\)".*/\1/p' Stratum.Droid/Properties/AndroidManifest.xml | head -1)
-          VERSION_NAME=${VERSION_NAME:-1.7.0}
-          VERSION_CODE=${VERSION_CODE:-17}
           mkdir -p dist
-          APK_NAME="Stratum-WebDAV-${VERSION_NAME}-${VERSION_CODE}.apk"
           cp "$RUNNER_TEMP/stratum-signed.apk" "dist/$APK_NAME"
           (cd dist && sha256sum "$APK_NAME" > SHA256SUMS.txt)
-          echo "APK_NAME=$APK_NAME" >> "$GITHUB_ENV"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -140,14 +200,56 @@ jobs:
           path: dist/*
           if-no-files-found: error
 
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: Stratum WebDAV ${{ github.ref_name }}
-          files: |
-            dist/*.apk
-            dist/SHA256SUMS.txt
-          generate_release_notes: true
-          draft: true
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="$VERSION_TAG"
+
+          # 清理同版本旧 Release / tag，保证重复运行不会沿用旧附件或旧 tag 时间。
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "删除已存在的 Release $TAG"
+            gh release delete "$TAG" --yes --cleanup-tag || gh release delete "$TAG" --yes
+          fi
+          gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/${TAG}" >/dev/null 2>&1 || true
+          git tag -d "$TAG" >/dev/null 2>&1 || true
+
+          # annotated tag：让 GitHub 的 Source code 时间使用当前时间。
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push -f origin "refs/tags/$TAG"
+
+          sleep 5
+          ok=0
+          for i in 1 2 3 4 5; do
+            if gh release create "$TAG" "dist/$APK_NAME" "dist/SHA256SUMS.txt" \
+                 --title "Stratum WebDAV $TAG" \
+                 --generate-notes; then
+              ok=1
+              break
+            fi
+            echo "::warning::gh release create 第 $i 次失败，$((i * 10))s 后重试"
+            sleep $((i * 10))
+            if gh release view "$TAG" >/dev/null 2>&1; then
+              if gh release upload "$TAG" "dist/$APK_NAME" "dist/SHA256SUMS.txt" --clobber; then
+                ok=1
+                break
+              fi
+            fi
+          done
+
+          if [ "$ok" -ne 1 ]; then
+            echo "::error::创建 Release $TAG 失败；tag 已推送，可稍后重跑本工作流。"
+            exit 1
+          fi
+
+          ASSETS="$(gh release view "$TAG" --json assets -q '.assets[].name')"
+          echo "Release 附件：$ASSETS"
+          echo "$ASSETS" | grep -Fqx "$APK_NAME" || {
+            echo "::error::APK 未上传成功"
+            exit 1
+          }
+          gh release view "$TAG" --json tagName,url,assets \
+            -q '"\(.tagName) → \(.url)\n附件：\(.assets[].name)"'
