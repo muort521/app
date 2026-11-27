@@ -44,12 +44,29 @@ namespace Stratum.Droid.WebDav
             var view = base.OnCreateView(inflater, container, savedInstanceState);
 
             var subtitle = view.FindViewById<MaterialTextView>(Resource.Id.textSubtitle);
+            var list = view.FindViewById<RecyclerView>(Resource.Id.listWebDav);
+
+            if (_entries.Count == 0)
+            {
+                if (subtitle != null)
+                {
+                    subtitle.Visibility = ViewStates.Visible;
+                    subtitle.SetText(Resource.String.webdavNoBackups);
+                }
+
+                if (list != null)
+                {
+                    list.Visibility = ViewStates.Gone;
+                }
+
+                return view;
+            }
+
             if (subtitle != null)
             {
                 subtitle.Visibility = ViewStates.Gone;
             }
 
-            var list = view.FindViewById<RecyclerView>(Resource.Id.listWebDav);
             var adapter = new WebDavRestoreAdapter(_entries);
             adapter.EntryClicked += entry =>
             {

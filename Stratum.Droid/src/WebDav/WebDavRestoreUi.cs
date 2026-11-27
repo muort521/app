@@ -29,7 +29,6 @@ namespace Stratum.Droid.WebDav
             List<WebDavEntry> entries;
             try
             {
-                Toast.MakeText(activity, Resource.String.webdavLoading, ToastLength.Short).Show();
                 entries = await WebDavBackupService.ListAsync(activity);
             }
             catch (Exception e)
@@ -41,7 +40,9 @@ namespace Stratum.Droid.WebDav
 
             if (entries.Count == 0)
             {
-                Toast.MakeText(activity, Resource.String.webdavNoBackups, ToastLength.Short).Show();
+                // 空列表不弹 Toast，在底部菜单里显示空状态
+                var emptySheet = new WebDavRestoreBottomSheet(entries);
+                emptySheet.Show(activity.SupportFragmentManager, "webdavRestore");
                 return;
             }
 
@@ -81,7 +82,6 @@ namespace Stratum.Droid.WebDav
             try
             {
                 await WebDavBackupService.DownloadToLocalBackupDirAsync(activity, entry);
-                Toast.MakeText(activity, Resource.String.webdavDownloaded, ToastLength.Short).Show();
             }
             catch (Exception e)
             {
