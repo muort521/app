@@ -63,7 +63,6 @@ namespace Stratum.Droid.WebDav
             view.FindViewById<MaterialButton>(Resource.Id.buttonSave).Click += delegate
             {
                 Save();
-                Toast.MakeText(RequireContext(), Resource.String.webdavSaved, ToastLength.Short).Show();
                 Dismiss();
             };
 
@@ -102,7 +101,6 @@ namespace Stratum.Droid.WebDav
                 await WebDavBackupService.TestAsync(RequireContext());
                 _config.LastStatus = GetString(Resource.String.webdavTestOk);
                 _textStatus.SetText(Resource.String.webdavTestOk);
-                Toast.MakeText(RequireContext(), Resource.String.webdavTestOk, ToastLength.Short).Show();
             }
             catch (Exception e)
             {
@@ -136,11 +134,11 @@ namespace Stratum.Droid.WebDav
             }
 
             preferences.AutoBackupTrigger = true;
-            Toast.MakeText(context, Resource.String.webdavBackupScheduled, ToastLength.Short).Show();
 
             var request = new OneTimeWorkRequest.Builder(typeof(AutoBackupWorker)).Build();
             WorkManager.GetInstance(context)
                 .EnqueueUniqueWork(AutoBackupWorker.ImmediateName, ExistingWorkPolicy.Replace!, request);
+            _textStatus.SetText(Resource.String.webdavBackupScheduled);
         }
     }
 }
