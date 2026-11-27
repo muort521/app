@@ -21,13 +21,11 @@ namespace Stratum.Droid.WebDav
         {
             if (fragment?.PreferenceScreen == null || context == null) return;
 
-            var category = fragment.PreferenceScreen.FindPreference("pref_key_general") as PreferenceCategory;
-            if (category == null) return;
+            // 这一行已经在 settings.xml 里紧跟在「自动备份」之后声明，
+            // 这里只负责绑定点击事件和摘要，不再动态 AddPreference 到末尾。
+            var preference = fragment.PreferenceScreen.FindPreference(WebDavConfig.PreferenceKey);
+            if (preference == null) return;
 
-            var preference = new Preference(context)
-            {
-                Key = WebDavConfig.PreferenceKey
-            };
             preference.SetTitle(Resource.String.webdavSettingsTitle);
             preference.Summary = new WebDavConfig(context).GetSummary(context);
 
@@ -37,7 +35,6 @@ namespace Stratum.Droid.WebDav
                 sheet.Show(manager, sheet.Tag);
             };
 
-            category.AddPreference(preference);
             _preference = new WeakReference<Preference>(preference);
         }
 

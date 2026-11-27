@@ -19,6 +19,10 @@
             android:title="@string/prefAutoBackupTitle"
             app:iconSpaceReserved="false"
             android:defaultValue="true"/>
+        <androidx.preference.Preference
+            android:key="pref_stratum_webdav"
+            android:title="@string/webdavSettingsTitle"
+            app:iconSpaceReserved="false"/>
         <androidx.preference.ListPreference
             android:key="pref_language"
             android:summary="@string/prefLanguageSummary"
