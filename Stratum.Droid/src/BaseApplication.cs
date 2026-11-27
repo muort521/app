@@ -13,7 +13,6 @@ using Serilog;
 using Serilog.Exceptions;
 using System.IO;
 using Stratum.Droid.Activity;
-using Stratum.SQLCipher;
 using Environment = System.Environment;
 
 namespace Stratum.Droid
@@ -36,9 +35,7 @@ namespace Stratum.Droid
         {
             InitLogger();
 
-            SqliteProvider.Init();
-            
-            Dependencies.Init(this, new Database());
+            Dependencies.EnsureInitialized(this);
             _session = Dependencies.Resolve<DatabaseSession>();
 
             AutoLockEnabled = false;

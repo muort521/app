@@ -35,17 +35,14 @@ namespace Stratum.Droid
         private readonly Context _context;
         private readonly PreferenceWrapper _preferences;
         private readonly SecureStorageWrapper _secureStorageWrapper;
-        private readonly Database _database;
-        private readonly IBackupService _backupService;
+        private Database _database;
+        private IBackupService _backupService;
 
         public AutoBackupWorker(Context context, WorkerParameters workerParams) : base(context, workerParams)
         {
             _context = context;
             _preferences = new PreferenceWrapper(context);
             _secureStorageWrapper = new SecureStorageWrapper(context);
-
-            _database = Dependencies.Resolve<Database>();
-            _backupService = Dependencies.Resolve<IBackupService>();
         }
 
         private bool HasPersistentPermissionsAtUri(Uri uri)
@@ -185,6 +182,20 @@ namespace Stratum.Droid
             manager.Notify((int) context, builder.Build());
         }
 
+        private void EnsureDependencies()
+        {
+            if (_database != null && _backupService != null)
+            {
+                return;
+            }
+
+            // WorkManager 可能在 Application 初始化完成前激活 Worker；
+            // 延迟到真正执行任务时再确保 Autofac 容器已经建立。
+            Dependencies.EnsureInitialized(_context);
+            _database = Dependencies.Resolve<Database>();
+            _backupService = Dependencies.Resolve<IBackupService>();
+        }
+
         private async Task<Result> DoWorkAsync()
         {
             // 周期任务和“数据变更后立即备份”可能同时触发，串行化避免写出两份备份
@@ -211,6 +222,7 @@ namespace Stratum.Droid
             {
                 try
                 {
+                    EnsureDependencies();
                     var databasePassword = _secureStorageWrapper.GetDatabasePassword();
                     var result = await _database.UseAsync(databasePassword, Database.Origin.AutoBackup, () => BackupToDir(destination));
 

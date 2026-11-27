@@ -16,18 +16,42 @@ using Stratum.Droid.Interface;
 using Stratum.Droid.Persistence;
 using Stratum.Droid.Persistence.View;
 using Stratum.Droid.Persistence.View.Impl;
+using Stratum.SQLCipher;
 
 namespace Stratum.Droid
 {
     internal static class Dependencies
     {
+        private static readonly object InitLock = new object();
         private static IContainer _container;
 
         public static void Init(Context context, Database database)
         {
-            var builder = new ContainerBuilder();
-            RegisterAll(builder, context, database);
-            _container = builder.Build();
+            lock (InitLock)
+            {
+                if (_container != null)
+                {
+                    return;
+                }
+
+                var builder = new ContainerBuilder();
+                RegisterAll(builder, context, database);
+                _container = builder.Build();
+            }
+        }
+
+        public static void EnsureInitialized(Context context)
+        {
+            lock (InitLock)
+            {
+                if (_container != null)
+                {
+                    return;
+                }
+
+                SqliteProvider.Init();
+                Init(context, new Database());
+            }
         }
 
         private static void RegisterAll(ContainerBuilder builder, Context context, Database database)
