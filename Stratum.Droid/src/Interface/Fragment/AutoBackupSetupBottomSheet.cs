@@ -193,7 +193,7 @@ namespace Stratum.Droid.Interface.Fragment
 
             var request = new OneTimeWorkRequest.Builder(typeof(AutoBackupWorker)).Build();
             var manager = WorkManager.GetInstance(RequireContext());
-            manager.EnqueueUniqueWork(AutoBackupWorker.Name, ExistingWorkPolicy.Replace!, request);
+            manager.EnqueueUniqueWork(AutoBackupWorker.ImmediateName, ExistingWorkPolicy.Replace!, request);
         }
 
         private void OnSelectLocationClick(object sender, EventArgs args)

@@ -140,7 +140,7 @@ namespace Stratum.Droid.WebDav
 
             var request = new OneTimeWorkRequest.Builder(typeof(AutoBackupWorker)).Build();
             WorkManager.GetInstance(context)
-                .EnqueueUniqueWork(AutoBackupWorker.Name, ExistingWorkPolicy.Replace!, request);
+                .EnqueueUniqueWork(AutoBackupWorker.ImmediateName, ExistingWorkPolicy.Replace!, request);
         }
     }
 }

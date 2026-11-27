@@ -216,6 +216,8 @@ namespace Stratum.Droid.Activity
 
             _shouldLoadFromPersistenceOnNextOpen = true;
 
+            AutoBackupScheduler.EnsurePeriodicIfEnabled();
+
             if (Preferences.FirstLaunch)
             {
                 StartActivity(typeof(IntroActivity));
@@ -1832,7 +1834,7 @@ namespace Stratum.Droid.Activity
 
             var request = new OneTimeWorkRequest.Builder(typeof(AutoBackupWorker)).Build();
             var manager = WorkManager.GetInstance(this);
-            manager.EnqueueUniqueWork(AutoBackupWorker.Name, ExistingWorkPolicy.Replace!, request);
+            manager.EnqueueUniqueWork(AutoBackupWorker.ImmediateName, ExistingWorkPolicy.Replace!, request);
         }
 
         #endregion

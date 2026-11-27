@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
@@ -26,6 +27,9 @@ namespace Stratum.Droid
     public class AutoBackupWorker : Worker
     {
         public const string Name = "autobackup";
+        public const string ImmediateName = "autobackup-now";
+
+        private static readonly SemaphoreSlim BackupLock = new SemaphoreSlim(1, 1);
 
         private readonly ILogger _log = Log.ForContext<AutoBackupWorker>();
         private readonly Context _context;
@@ -182,6 +186,20 @@ namespace Stratum.Droid
         }
 
         private async Task<Result> DoWorkAsync()
+        {
+            // 周期任务和“数据变更后立即备份”可能同时触发，串行化避免写出两份备份
+            await BackupLock.WaitAsync();
+            try
+            {
+                return await DoWorkCoreAsync();
+            }
+            finally
+            {
+                BackupLock.Release();
+            }
+        }
+
+        private async Task<Result> DoWorkCoreAsync()
         {
             var destination = _preferences.AutoBackupUri;
 

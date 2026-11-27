@@ -297,7 +297,16 @@ namespace Stratum.Droid
         public BackupRequirement BackupRequired
         {
             get => GetEnumPreference(BackupRequirementKey, BackupRequirementDefault);
-            set => SetEnumPreference(BackupRequirementKey, value);
+            set
+            {
+                SetEnumPreference(BackupRequirementKey, value);
+
+                // 数据发生变化时不用等下一次 15 分钟周期任务
+                if (value != BackupRequirement.NotRequired)
+                {
+                    AutoBackupScheduler.ScheduleIfEnabled();
+                }
+            }
         }
 
         private const string AutoBackupTriggerKey = "autoBackupTrigger";
