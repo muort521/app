@@ -69,4 +69,8 @@
     <ItemGroup>
         <LinkDescription Include="trim.xml" />
     </ItemGroup>
+    <ItemGroup Condition=" '$(Configuration)' == 'Release' ">
+        <!-- Release 包不需要调试/诊断端口；关闭后不会再为每次进程启动生成 clr-debug-pipe-* 命名管道 -->
+        <RuntimeEnvironmentVariable Include="DOTNET_EnableDiagnostics" Value="0" />
+    </ItemGroup>
 </Project>
