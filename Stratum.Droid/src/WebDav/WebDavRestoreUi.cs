@@ -3,10 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Android.Widget;
-using Google.Android.Material.Dialog;
 using Stratum.Droid.Activity;
 
 namespace Stratum.Droid.WebDav
@@ -47,31 +45,21 @@ namespace Stratum.Droid.WebDav
                 return;
             }
 
-            var labels = entries.Select(entry =>
+            var sheet = new WebDavRestoreBottomSheet(entries);
+            sheet.EntrySelected += delegate(object sender, WebDavRestoreEventArgs args)
             {
-                var date = entry.LastModified?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "";
-                return $"{entry.Name}  ·  {date}  {entry.DisplaySize}";
-            }).ToArray();
+                ShowActions(activity, args.Entry);
+            };
 
-            var adapter = new ArrayAdapter<string>(activity, Android.Resource.Layout.SimpleListItem1, labels);
-
-            new MaterialAlertDialogBuilder(activity)
-                .SetTitle(Resource.String.webdavRestoreTitle)
-                .SetAdapter(adapter, (s, args) => ShowActions(activity, entries[args.Which]))
-                .SetNegativeButton(Android.Resource.String.Cancel, delegate { })
-                .Show();
+            sheet.Show(activity.SupportFragmentManager, "webdavRestore");
         }
 
         private static void ShowActions(MainActivity activity, WebDavEntry entry)
         {
-            new MaterialAlertDialogBuilder(activity)
-                .SetTitle(entry.Name)
-                .SetPositiveButton(Resource.String.webdavRestoreToApp,
-                    async (s, args) => await RestoreToAppAsync(activity, entry))
-                .SetNeutralButton(Resource.String.webdavDownloadToLocal,
-                    async (s, args) => await DownloadToLocalAsync(activity, entry))
-                .SetNegativeButton(Android.Resource.String.Cancel, delegate { })
-                .Show();
+            var sheet = new WebDavRestoreActionBottomSheet(entry);
+            sheet.RestoreClicked += async delegate { await RestoreToAppAsync(activity, entry); };
+            sheet.DownloadClicked += async delegate { await DownloadToLocalAsync(activity, entry); };
+            sheet.Show(activity.SupportFragmentManager, "webdavRestoreActions");
         }
 
         private static async Task RestoreToAppAsync(MainActivity activity, WebDavEntry entry)

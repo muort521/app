@@ -18,6 +18,7 @@
     <string name="webdavBackupScheduled">Backup scheduled</string>
     <string name="webdavNeedAutoBackup">Set up local auto backup first</string>
     <string name="webdavRestoreTitle">Restore from WebDAV</string>
+    <string name="webdavRestoreActions">Choose action</string>
     <string name="webdavLoading">Loading cloud backups…</string>
     <string name="webdavNoBackups">No backups on the server</string>
     <string name="webdavLoadFailed">Failed to load backups: %1$s</string>
