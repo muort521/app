@@ -1521,14 +1521,29 @@ namespace Stratum.Droid.Activity
 
         private async Task RestoreFromData(byte[] data)
         {
-            var supportedEncryptions = _backupEncryptions.Where(e => e.CanBeDecrypted(data));
+            var supportedEncryptions = _backupEncryptions
+                .Where(e => e.CanBeDecrypted(data))
+                .ToList();
 
             if (!supportedEncryptions.Any())
             {
                 ShowSnackbar(Resource.String.invalidFileError, Snackbar.LengthShort);
                 return;
             }
-            
+
+            // 加密备份在没有密码时无法直接解密。先判断是否存在“无密码即可解密”的
+            // 明文备份，否则直接弹密码框，避免用 null 密码试一次并写入误导性的
+            // Warning/Error 日志。
+            var unencrypted = supportedEncryptions
+                .OfType<NoBackupEncryption>()
+                .FirstOrDefault(e => e.CanBeDecrypted(data));
+
+            if (unencrypted == null)
+            {
+                PromptForRestorePassword(data);
+                return;
+            }
+
             try
             {
                 var result = await DecryptAndRestore(data, null);
