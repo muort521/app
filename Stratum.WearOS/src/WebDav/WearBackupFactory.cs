@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -251,6 +252,49 @@ namespace Stratum.WearOS.WebDav
         public static string ExportFileName(string prefix, string extension)
         {
             return $"{prefix}-{DateTime.Now:yyyyMMdd-HHmmss}.{extension}";
+        }
+
+        /// <summary>
+        /// The watch only creates backups in memory and uploads them directly to
+        /// WebDAV. This removes transient files from older runs without touching
+        /// the normal account cache (authenticators.json/categories.json).
+        /// </summary>
+        public static void ClearTransientBackupArtifacts(Context context)
+        {
+            var cacheDir = context?.CacheDir?.Path;
+            if (string.IsNullOrWhiteSpace(cacheDir) || !Directory.Exists(cacheDir))
+            {
+                return;
+            }
+
+            DeleteMatchingFiles(cacheDir, "stratum-*.stratum");
+            DeleteMatchingFiles(cacheDir, "aegis-*.json");
+            DeleteMatchingFiles(cacheDir, "2fas-*.2fas");
+            DeleteMatchingFiles(cacheDir, "bitwarden-*.json");
+            DeleteMatchingFiles(cacheDir, "bitwarden-*.csv");
+            DeleteMatchingFiles(cacheDir, "*.tmp");
+        }
+
+        private static void DeleteMatchingFiles(string directory, string pattern)
+        {
+            try
+            {
+                foreach (var path in Directory.GetFiles(directory, pattern))
+                {
+                    try
+                    {
+                        File.Delete(path);
+                    }
+                    catch
+                    {
+                        // A transient file is not worth failing an upload over.
+                    }
+                }
+            }
+            catch
+            {
+                // Cache cleanup is best-effort only.
+            }
         }
     }
 

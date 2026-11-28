@@ -38,6 +38,11 @@ namespace Stratum.WearOS.Util
             var window = dialog.Window;
             if (window != null)
             {
+                // Keep dialogs visually identical to the cloud-backup page:
+                // no floating gray panel, just the same solid dark background.
+                window.SetBackgroundDrawable(new Android.Graphics.Drawables.ColorDrawable(Color.Black));
+                window.SetDimAmount(0f);
+                window.ClearFlags(WindowManagerFlags.DimBehind);
                 window.SetLayout(Dp(context, widthDp), ViewGroup.LayoutParams.WrapContent);
                 window.SetGravity(GravityFlags.Center);
             }

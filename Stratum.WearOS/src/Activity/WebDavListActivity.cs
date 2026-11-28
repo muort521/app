@@ -261,9 +261,7 @@ namespace Stratum.WearOS.Activity
             actions.AddView(delete);
             layout.AddView(actions);
 
-            var dialog = new AlertDialog.Builder(this)
-                .SetView(layout)
-                .Create();
+            var dialog = WearDialog.Show(this, layout);
 
             cancel.Click += delegate { dialog.Dismiss(); };
             delete.Click += delegate
@@ -271,15 +269,6 @@ namespace Stratum.WearOS.Activity
                 dialog.Dismiss();
                 _ = DeleteAsync(entry);
             };
-
-            dialog.Show();
-
-            var window = dialog.Window;
-            if (window != null)
-            {
-                window.SetLayout(WearDialog.Dp(this, 170), ViewGroup.LayoutParams.WrapContent);
-                window.SetGravity(GravityFlags.Center);
-            }
         }
 
         private async Task DeleteAsync(WebDavEntry entry)

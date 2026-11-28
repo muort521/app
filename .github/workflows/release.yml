@@ -8,6 +8,14 @@ name: Release (fork)
 #   KEYSTORE_PASS     keystore password
 #   KEYSTORE_ALIAS    key alias
 #   KEYSTORE_KEY_PASS key password
+#
+# Release assets (each APK contains exactly one ABI):
+#   Phone arm64            Stratum-WebDAV-<version>-arm64.apk
+#   Phone armeabi-v7a      Stratum-WebDAV-<version>-armeabi-v7a.apk
+#   Phone x86_64           Stratum-WebDAV-<version>-x86_64.apk
+#   WearOS arm64           Stratum-WearOS-<version>-arm64.apk
+#   WearOS armeabi-v7a     Stratum-WearOS-<version>-armeabi-v7a.apk
+#   WearOS x86_64          Stratum-WearOS-<version>-x86_64.apk
 
 on:
   workflow_dispatch:
@@ -36,13 +44,17 @@ env:
   BUILD_TOOLS: "37.0.0"
 
 jobs:
-  build:
+  prepare:
     if: github.repository_owner == 'muort521'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version_no: ${{ steps.version.outputs.version_no }}
+      version_code: ${{ steps.version.outputs.version_code }}
 
     steps:
       - name: Resolve release version
+        id: version
         env:
           INPUT_VERSION: ${{ inputs.version }}
           REF_NAME: ${{ github.ref_name }}
@@ -65,14 +77,66 @@ jobs:
           MINOR="${REST%%.*}"
           PATCH="${REST#*.}"
           VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))
-          APK_NAME="Stratum-WebDAV-${VERSION_NO}-release.apk"
 
-          echo "VERSION_TAG=$TAG" >> "$GITHUB_ENV"
-          echo "VERSION_NO=$VERSION_NO" >> "$GITHUB_ENV"
-          echo "VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
-          echo "APK_NAME=$APK_NAME" >> "$GITHUB_ENV"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version_no=$VERSION_NO" >> "$GITHUB_OUTPUT"
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
           echo "发布版本：$TAG → versionName=$VERSION_NO, versionCode=$VERSION_CODE"
 
+  build:
+    if: github.repository_owner == 'muort521'
+    needs: prepare
+    name: build (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: phone-arm64
+            project: Stratum.Droid
+            apk_base: Stratum-WebDAV
+            apk_suffix: arm64
+            rids: android-arm64
+            abis: "arm64-v8a"
+            artifact: Stratum-WebDAV-arm64
+          - name: phone-armeabi-v7a
+            project: Stratum.Droid
+            apk_base: Stratum-WebDAV
+            apk_suffix: armeabi-v7a
+            rids: android-arm
+            abis: "armeabi-v7a"
+            artifact: Stratum-WebDAV-armeabi-v7a
+          - name: phone-x86_64
+            project: Stratum.Droid
+            apk_base: Stratum-WebDAV
+            apk_suffix: x86_64
+            rids: android-x64
+            abis: "x86_64"
+            artifact: Stratum-WebDAV-x86_64
+          - name: wear-arm64
+            project: Stratum.WearOS
+            apk_base: Stratum-WearOS
+            apk_suffix: arm64
+            rids: android-arm64
+            abis: "arm64-v8a"
+            artifact: Stratum-WearOS-arm64
+          - name: wear-armeabi-v7a
+            project: Stratum.WearOS
+            apk_base: Stratum-WearOS
+            apk_suffix: armeabi-v7a
+            rids: android-arm
+            abis: "armeabi-v7a"
+            artifact: Stratum-WearOS-armeabi-v7a
+          - name: wear-x86_64
+            project: Stratum.WearOS
+            apk_base: Stratum-WearOS
+            apk_suffix: x86_64
+            rids: android-x64
+            abis: "x86_64"
+            artifact: Stratum-WearOS-x86_64
+
+    steps:
       # The upstream tree stores values-en-rGB/strings.xml as symlinks, but on
       # this fork the link blobs contain the full XML. Linux cannot create a
       # symlink whose target is a 30 KB XML document, so disable symlink
@@ -90,9 +154,13 @@ jobs:
           cp Stratum.WearOS/Resources/values/strings.xml Stratum.WearOS/Resources/values-en-rGB/strings.xml
 
       - name: Set APK version
+        env:
+          PROJECT: ${{ matrix.project }}
+          VERSION_NO: ${{ needs.prepare.outputs.version_no }}
+          VERSION_CODE: ${{ needs.prepare.outputs.version_code }}
         run: |
           set -euo pipefail
-          MANIFEST="Stratum.Droid/Properties/AndroidManifest.xml"
+          MANIFEST="$PROJECT/Properties/AndroidManifest.xml"
           sed -i "s/android:versionName=\"[^\"]*\"/android:versionName=\"$VERSION_NO\"/" "$MANIFEST"
           sed -i "s/android:versionCode=\"[^\"]*\"/android:versionCode=\"$VERSION_CODE\"/" "$MANIFEST"
           grep -E 'android:versionName|android:versionCode' "$MANIFEST"
@@ -122,15 +190,26 @@ jobs:
           "$SDKMANAGER" --sdk_root="$SDK_ROOT" --channel=3 --install "platform-tools" "platforms;android-${ANDROID_API}" "build-tools;${BUILD_TOOLS}"
 
       - name: Restore NuGet packages
-        run: dotnet restore Stratum.Droid/Stratum.Droid.csproj
-
-      - name: Build Release APK
+        env:
+          PROJECT: ${{ matrix.project }}
+          RIDS: ${{ matrix.rids }}
         run: |
           set -euo pipefail
-          dotnet publish Stratum.Droid/Stratum.Droid.csproj \
+          dotnet restore "$PROJECT/$PROJECT.csproj" -p:RuntimeIdentifiers="$RIDS"
+
+      - name: Build Release APK
+        env:
+          PROJECT: ${{ matrix.project }}
+          RIDS: ${{ matrix.rids }}
+          VERSION_NO: ${{ needs.prepare.outputs.version_no }}
+          VERSION_CODE: ${{ needs.prepare.outputs.version_code }}
+        run: |
+          set -euo pipefail
+          dotnet publish "$PROJECT/$PROJECT.csproj" \
             -c "$CONFIGURATION" \
             -f "$FRAMEWORK" \
             --no-restore \
+            -p:RuntimeIdentifiers="$RIDS" \
             -p:AndroidSdkDirectory="$ANDROID_SDK_ROOT" \
             -p:JavaSdkDirectory="$JAVA_HOME" \
             -p:ApplicationDisplayVersion="$VERSION_NO" \
@@ -152,13 +231,15 @@ jobs:
 
       - name: Sign APK
         env:
+          PROJECT: ${{ matrix.project }}
           KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
           KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
           KEYSTORE_KEY_PASS: ${{ secrets.KEYSTORE_KEY_PASS }}
         run: |
           set -euo pipefail
           SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
-          APK=$(find "Stratum.Droid/bin/$CONFIGURATION/$FRAMEWORK/publish" -maxdepth 1 -name '*-Signed.apk' -print -quit)
+          PUBLISH_DIR="$PROJECT/bin/$CONFIGURATION/$FRAMEWORK/publish"
+          APK=$(find "$PUBLISH_DIR" -maxdepth 1 -name '*-Signed.apk' -print -quit)
           test -n "$APK"
           "$SDK_ROOT/build-tools/$BUILD_TOOLS/zipalign" -f 4 "$APK" "$RUNNER_TEMP/stratum-aligned.apk"
           "$SDK_ROOT/build-tools/$BUILD_TOOLS/apksigner" sign \
@@ -170,6 +251,9 @@ jobs:
             "$RUNNER_TEMP/stratum-aligned.apk"
 
       - name: Verify APK version and signature
+        env:
+          VERSION_NO: ${{ needs.prepare.outputs.version_no }}
+          VERSION_CODE: ${{ needs.prepare.outputs.version_code }}
         run: |
           set -euo pipefail
           SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
@@ -186,26 +270,95 @@ jobs:
           }
           "$SDK_ROOT/build-tools/$BUILD_TOOLS/apksigner" verify --print-certs "$RUNNER_TEMP/stratum-signed.apk" | head -n 5
 
-      - name: Name APK
+      - name: Verify APK ABI contents
+        env:
+          EXPECTED_ABIS: ${{ matrix.abis }}
         run: |
           set -euo pipefail
+          APK="$RUNNER_TEMP/stratum-signed.apk"
+          ACTUAL_ABIS="$(unzip -Z1 "$APK" | awk -F/ '$1 == "lib" { print $2 }' | sort -u | tr '\n' ' ')"
+          ACTUAL_ABIS="${ACTUAL_ABIS% }"
+          echo "APK ABIs: ${ACTUAL_ABIS:-<none>}"
+          test "$ACTUAL_ABIS" = "$EXPECTED_ABIS" || {
+            echo "::error::APK ABI 不符合预期：期望 [$EXPECTED_ABIS]，实际 [${ACTUAL_ABIS:-<none>}]"
+            exit 1
+          }
+
+      - name: Name APK
+        env:
+          APK_BASE: ${{ matrix.apk_base }}
+          APK_SUFFIX: ${{ matrix.apk_suffix }}
+          VERSION_NO: ${{ needs.prepare.outputs.version_no }}
+        run: |
+          set -euo pipefail
+          APK_NAME="${APK_BASE}-${VERSION_NO}-${APK_SUFFIX}.apk"
           mkdir -p dist
           cp "$RUNNER_TEMP/stratum-signed.apk" "dist/$APK_NAME"
-          (cd dist && sha256sum "$APK_NAME" > SHA256SUMS.txt)
+          echo "Built $APK_NAME"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Stratum-WebDAV-APK
+          name: ${{ matrix.artifact }}
           path: dist/*
           if-no-files-found: error
+
+  release:
+    if: github.repository_owner == 'muort521'
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Disable symlink checkout
+        run: git config --global core.symlinks false
+
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: Stratum-*
+          path: dist
+          merge-multiple: true
+
+      - name: Prepare release assets
+        env:
+          VERSION_NO: ${{ needs.prepare.outputs.version_no }}
+        run: |
+          set -euo pipefail
+          test "$(find dist -maxdepth 1 -name '*.apk' | wc -l)" -eq 6
+          PHONE_ARM64="Stratum-WebDAV-${VERSION_NO}-arm64.apk"
+          PHONE_ARMV7="Stratum-WebDAV-${VERSION_NO}-armeabi-v7a.apk"
+          PHONE_X86="Stratum-WebDAV-${VERSION_NO}-x86_64.apk"
+          WEAR_ARM64="Stratum-WearOS-${VERSION_NO}-arm64.apk"
+          WEAR_ARMV7="Stratum-WearOS-${VERSION_NO}-armeabi-v7a.apk"
+          WEAR_X86="Stratum-WearOS-${VERSION_NO}-x86_64.apk"
+          for name in "$PHONE_ARM64" "$PHONE_ARMV7" "$PHONE_X86" "$WEAR_ARM64" "$WEAR_ARMV7" "$WEAR_X86"; do
+            test -f "dist/$name" || {
+              echo "::error::缺少发布包：$name"
+              exit 1
+            }
+          done
+          (cd dist && sha256sum *.apk > SHA256SUMS.txt)
+          ls -l dist
 
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+          VERSION_NO: ${{ needs.prepare.outputs.version_no }}
         run: |
           set -euo pipefail
-          TAG="$VERSION_TAG"
+          PHONE_ARM64="Stratum-WebDAV-${VERSION_NO}-arm64.apk"
+          PHONE_ARMV7="Stratum-WebDAV-${VERSION_NO}-armeabi-v7a.apk"
+          PHONE_X86="Stratum-WebDAV-${VERSION_NO}-x86_64.apk"
+          WEAR_ARM64="Stratum-WearOS-${VERSION_NO}-arm64.apk"
+          WEAR_ARMV7="Stratum-WearOS-${VERSION_NO}-armeabi-v7a.apk"
+          WEAR_X86="Stratum-WearOS-${VERSION_NO}-x86_64.apk"
 
           # 清理同版本旧 Release / tag，保证重复运行不会沿用旧附件或旧 tag 时间。
           if gh release view "$TAG" >/dev/null 2>&1; then
@@ -224,8 +377,8 @@ jobs:
           sleep 5
           ok=0
           for i in 1 2 3 4 5; do
-            if gh release create "$TAG" "dist/$APK_NAME" "dist/SHA256SUMS.txt" \
-                 --title "Stratum WebDAV $TAG" \
+            if gh release create "$TAG" dist/*.apk dist/SHA256SUMS.txt \
+                 --title "Stratum $TAG" \
                  --generate-notes; then
               ok=1
               break
@@ -233,7 +386,7 @@ jobs:
             echo "::warning::gh release create 第 $i 次失败，$((i * 10))s 后重试"
             sleep $((i * 10))
             if gh release view "$TAG" >/dev/null 2>&1; then
-              if gh release upload "$TAG" "dist/$APK_NAME" "dist/SHA256SUMS.txt" --clobber; then
+              if gh release upload "$TAG" dist/*.apk dist/SHA256SUMS.txt --clobber; then
                 ok=1
                 break
               fi
@@ -247,9 +400,11 @@ jobs:
 
           ASSETS="$(gh release view "$TAG" --json assets -q '.assets[].name')"
           echo "Release 附件：$ASSETS"
-          echo "$ASSETS" | grep -Fqx "$APK_NAME" || {
-            echo "::error::APK 未上传成功"
-            exit 1
-          }
+          for name in "$PHONE_ARM64" "$PHONE_ARMV7" "$PHONE_X86" "$WEAR_ARM64" "$WEAR_ARMV7" "$WEAR_X86" "SHA256SUMS.txt"; do
+            echo "$ASSETS" | grep -Fqx "$name" || {
+              echo "::error::发布附件未上传成功：$name"
+              exit 1
+            }
+          done
           gh release view "$TAG" --json tagName,url,assets \
             -q '"\(.tagName) → \(.url)\n附件：\(.assets[].name)"'

@@ -266,9 +266,11 @@ namespace Stratum.WearOS.Activity
             SetBusy(true);
             _textStatus.SetText(Resource.String.webdavBackupUploading);
 
+            byte[] data = null;
+
             try
             {
-                var data = await WearBackupFactory.CreateEncryptedBackupAsync(_authCache, _categoryCache,
+                data = await WearBackupFactory.CreateEncryptedBackupAsync(_authCache, _categoryCache,
                     _iconCache, password);
                 var fileName = WearBackupFactory.EncryptedFileName();
                 await WearWebDavService.UploadAsync(this, fileName, data);
@@ -284,6 +286,12 @@ namespace Stratum.WearOS.Activity
             }
             finally
             {
+                if (data != null)
+                {
+                    Array.Clear(data, 0, data.Length);
+                }
+
+                WearBackupFactory.ClearTransientBackupArtifacts(this);
                 SetBusy(false);
             }
         }
@@ -307,6 +315,7 @@ namespace Stratum.WearOS.Activity
             options.Orientation = Orientation.Vertical;
 
             var scroll = new ScrollView(this);
+            scroll.VerticalScrollBarEnabled = false;
             scroll.LayoutParameters = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MatchParent, WearDialog.Dp(this, 96));
             scroll.AddView(options);
@@ -387,11 +396,11 @@ namespace Stratum.WearOS.Activity
             SetBusy(true);
             _textStatus.SetText(Resource.String.webdavExporting);
 
+            byte[] data = null;
+            string fileName = null;
+
             try
             {
-                byte[] data;
-                string fileName;
-
                 switch (format)
                 {
                     case 0:
@@ -432,6 +441,12 @@ namespace Stratum.WearOS.Activity
             }
             finally
             {
+                if (data != null)
+                {
+                    Array.Clear(data, 0, data.Length);
+                }
+
+                WearBackupFactory.ClearTransientBackupArtifacts(this);
                 SetBusy(false);
             }
         }
