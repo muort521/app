@@ -26,6 +26,11 @@
     <string name="webdavDownloadToLocal">Save to local backup folder</string>
     <string name="webdavDownloaded">Downloaded to local backup folder</string>
     <string name="webdavRestoreFailed">Restore failed: %1$s</string>
+    <string name="webdavDelete">Delete</string>
+    <string name="webdavDeleteTitle">Delete cloud backup</string>
+    <string name="webdavDeleteMessage">Delete %1$s from the WebDAV server? This cannot be undone.</string>
+    <string name="webdavDeleteFailed">Delete failed: %1$s</string>
+    <string name="webdavDeleteContentDescription">Delete cloud backup</string>
     <string name="webdavMenuRestore">From WebDAV</string>
     <string name="webdavSummaryDisabled">Disabled</string>
     <string name="webdavSummaryNotConfigured">Not configured</string>

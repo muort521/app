@@ -116,5 +116,21 @@ namespace Stratum.Droid.WebDav
             using var client = new WebDavClient(config);
             return await client.DownloadAsync(entry);
         }
+
+        public static async Task DeleteAsync(Context context, WebDavEntry entry)
+        {
+            if (entry == null) throw new ArgumentNullException(nameof(entry));
+
+            var config = new WebDavConfig(context);
+            if (!config.IsConfigured)
+            {
+                throw new InvalidOperationException("WebDAV 未启用或未配置");
+            }
+
+            using var client = new WebDavClient(config);
+            await client.DeleteAsync(entry);
+            config.LastStatus = $"已删除 {entry.Name}";
+            Log.Information("WebDAV backup deleted: {FileName}", entry.Name);
+        }
     }
 }

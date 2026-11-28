@@ -253,6 +253,23 @@ namespace Stratum.Droid.WebDav
             return await response.Content.ReadAsByteArrayAsync();
         }
 
+        public async Task DeleteAsync(WebDavEntry entry)
+        {
+            if (entry == null) throw new ArgumentNullException(nameof(entry));
+
+            using var response = await SendAsync(HttpMethod.Delete, entry.Uri, null, null);
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                throw new InvalidOperationException("用户名或密码错误（401）");
+            }
+
+            // 文件已经被其他客户端删掉时，不再把 404 当成失败；刷新列表即可。
+            if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.NotFound)
+            {
+                throw new InvalidOperationException($"删除失败：{(int) response.StatusCode} {response.ReasonPhrase}");
+            }
+        }
+
         private Uri DirectoryUri()
         {
             var segments = _directory.Split('/', StringSplitOptions.RemoveEmptyEntries);

@@ -26,6 +26,11 @@
     <string name="webdavDownloadToLocal">下载到本地备份目录</string>
     <string name="webdavDownloaded">已下载到本地备份目录</string>
     <string name="webdavRestoreFailed">恢复失败：%1$s</string>
+    <string name="webdavDelete">删除</string>
+    <string name="webdavDeleteTitle">删除云端备份</string>
+    <string name="webdavDeleteMessage">要从 WebDAV 服务器删除 %1$s 吗？此操作无法撤销。</string>
+    <string name="webdavDeleteFailed">删除失败：%1$s</string>
+    <string name="webdavDeleteContentDescription">删除云端备份</string>
     <string name="webdavMenuRestore">从 WebDAV 恢复</string>
     <string name="webdavSummaryDisabled">已停用</string>
     <string name="webdavSummaryNotConfigured">未配置</string>
