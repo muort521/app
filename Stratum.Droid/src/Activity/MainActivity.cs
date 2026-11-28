@@ -94,6 +94,10 @@ namespace Stratum.Droid.Activity
         private const int RequestImportTotpAuthenticator = 19;
         private const int RequestImportAuthenticatorPlus = 20;
         private const int RequestImportUriList = 21;
+        private const int RequestExportAegis = 22;
+        private const int RequestExportTwoFas = 23;
+        private const int RequestExportBitwardenJson = 24;
+        private const int RequestExportBitwardenCsv = 25;
 
         // Data
         private readonly ILogger _log = Log.ForContext<MainActivity>();
@@ -347,6 +351,22 @@ namespace Stratum.Droid.Activity
 
                 case RequestBackupUriList:
                     await BackupToUriListFile(intent.Data);
+                    break;
+
+                case RequestExportAegis:
+                    await ExportToAegisFile(intent.Data);
+                    break;
+
+                case RequestExportTwoFas:
+                    await ExportToTwoFasFile(intent.Data);
+                    break;
+
+                case RequestExportBitwardenJson:
+                    await ExportToBitwardenJsonFile(intent.Data);
+                    break;
+
+                case RequestExportBitwardenCsv:
+                    await ExportToBitwardenCsvFile(intent.Data);
                     break;
 
                 case RequestCustomIcon:
@@ -1688,10 +1708,10 @@ namespace Stratum.Droid.Activity
         {
             var fragment = new BackupBottomSheet();
 
-            void ShowPicker(string mimeType, int requestCode, string fileExtension)
+            void ShowPicker(string mimeType, int requestCode, string fileExtension, string prefix = "backup")
             {
                 StartFileSaveActivity(mimeType, requestCode,
-                    FormattableString.Invariant($"backup-{DateTime.Now:yyyy-MM-dd_HHmmss}.{fileExtension}"));
+                    FormattableString.Invariant($"{prefix}-{DateTime.Now:yyyy-MM-dd_HHmmss}.{fileExtension}"));
             }
 
             fragment.BackupFileClicked += delegate { ShowPicker("*/*", RequestBackupFile, Backup.FileExtension); };
@@ -1704,6 +1724,30 @@ namespace Stratum.Droid.Activity
             fragment.BackupUriListClicked += delegate
             {
                 ShowPicker(UriListBackup.MimeType, RequestBackupUriList, UriListBackup.FileExtension);
+            };
+
+            fragment.ExportAegisClicked += delegate
+            {
+                ShowPicker(MigrationExport.JsonMimeType, RequestExportAegis,
+                    MigrationExport.AegisFileExtension, "aegis");
+            };
+
+            fragment.ExportTwoFasClicked += delegate
+            {
+                ShowPicker(MigrationExport.JsonMimeType, RequestExportTwoFas,
+                    MigrationExport.TwoFasFileExtension, "2fas");
+            };
+
+            fragment.ExportBitwardenJsonClicked += delegate
+            {
+                ShowPicker(MigrationExport.JsonMimeType, RequestExportBitwardenJson,
+                    MigrationExport.BitwardenJsonFileExtension, "bitwarden");
+            };
+
+            fragment.ExportBitwardenCsvClicked += delegate
+            {
+                ShowPicker("text/csv", RequestExportBitwardenCsv,
+                    MigrationExport.BitwardenCsvFileExtension, "bitwarden");
             };
 
             fragment.Show(SupportFragmentManager, fragment.Tag);
@@ -1802,6 +1846,55 @@ namespace Stratum.Droid.Activity
             }
 
             FinaliseBackup();
+        }
+
+        private async Task ExportToFile(Uri destination,
+            Func<IEnumerable<Authenticator>, string> createContents, string errorMessage)
+        {
+            try
+            {
+                var backup = await _backupService.CreateBackupAsync();
+                var contents = createContents(backup.Authenticators);
+                await FileUtil.WriteFileAsync(this, destination, contents);
+            }
+            catch (Exception e)
+            {
+                _log.Error(e, errorMessage);
+                ShowSnackbar(Resource.String.genericError, Snackbar.LengthShort);
+                return;
+            }
+
+            FinaliseExport();
+        }
+
+        private Task ExportToAegisFile(Uri destination)
+        {
+            return ExportToFile(destination, MigrationExport.ToAegisJson,
+                "Error exporting authenticators to Aegis JSON");
+        }
+
+        private Task ExportToTwoFasFile(Uri destination)
+        {
+            return ExportToFile(destination, MigrationExport.ToTwoFasJson,
+                "Error exporting authenticators to 2FAS JSON");
+        }
+
+        private Task ExportToBitwardenJsonFile(Uri destination)
+        {
+            return ExportToFile(destination, MigrationExport.ToBitwardenJson,
+                "Error exporting authenticators to Bitwarden JSON");
+        }
+
+        private Task ExportToBitwardenCsvFile(Uri destination)
+        {
+            return ExportToFile(destination, MigrationExport.ToBitwardenCsv,
+                "Error exporting authenticators to Bitwarden CSV");
+        }
+
+        private void FinaliseExport()
+        {
+            // Exports are for migration, not a substitute for a restorable backup.
+            ShowSnackbar(Resource.String.saveSuccess, Snackbar.LengthLong);
         }
 
         private void FinaliseBackup()

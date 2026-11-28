@@ -18,6 +18,10 @@ namespace Stratum.Droid.Interface.Fragment
         public event EventHandler BackupFileClicked;
         public event EventHandler BackupHtmlFileClicked;
         public event EventHandler BackupUriListClicked;
+        public event EventHandler ExportAegisClicked;
+        public event EventHandler ExportTwoFasClicked;
+        public event EventHandler ExportBitwardenJsonClicked;
+        public event EventHandler ExportBitwardenCsvClicked;
 
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {
@@ -33,7 +37,28 @@ namespace Stratum.Droid.Interface.Fragment
                     Resource.String.backupHtmlMessage),
                 new SheetMenuItem(Resource.Drawable.baseline_list_24, Resource.String.backupUriList,
                     delegate { ShowUnencryptedWarning(Resource.String.backupUriListWarning, BackupUriListClicked); },
-                    Resource.String.backupUriListMessage)
+                    Resource.String.backupUriListMessage),
+                new SheetMenuItem(Resource.Drawable.baseline_data_object_24, Resource.String.backupAegis,
+                    delegate { ShowUnencryptedWarning(Resource.String.backupMigrationWarning, ExportAegisClicked); },
+                    Resource.String.backupAegisMessage),
+                new SheetMenuItem(Resource.Drawable.baseline_data_object_24, Resource.String.backupTwoFas,
+                    delegate
+                    {
+                        ShowUnencryptedWarning(Resource.String.backupMigrationWarning, ExportTwoFasClicked);
+                    },
+                    Resource.String.backupTwoFasMessage),
+                new SheetMenuItem(Resource.Drawable.baseline_data_object_24, Resource.String.backupBitwardenJson,
+                    delegate
+                    {
+                        ShowUnencryptedWarning(Resource.String.backupMigrationWarning, ExportBitwardenJsonClicked);
+                    },
+                    Resource.String.backupBitwardenJsonMessage),
+                new SheetMenuItem(Resource.Drawable.baseline_table_view_24, Resource.String.backupBitwardenCsv,
+                    delegate
+                    {
+                        ShowUnencryptedWarning(Resource.String.backupMigrationWarning, ExportBitwardenCsvClicked);
+                    },
+                    Resource.String.backupBitwardenCsvMessage)
             ]);
 
             return view;

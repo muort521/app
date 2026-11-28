@@ -141,6 +141,16 @@
     <string name="backupUriListMessage">Save your authenticators to an unencrypted plain-text URI list file. This file is compatible with many alternative applications and services. Categories and icons are not saved.</string>
     <string name="backupUriListWarning">Plain-text backups are unencrypted and may leave your secret keys vulnerable.\n\nThis file does not contain categories and icons. If unsure, opt for encrypted file backup instead.\n\nContinue?</string>
 
+    <string name="backupAegis">Export to Aegis JSON</string>
+    <string name="backupAegisMessage">Save all authenticators to an unencrypted JSON file that Aegis, 2FAS, Bitwarden Authenticator and other compatible apps can import. Categories and icons are not included.</string>
+    <string name="backupTwoFas">Export to 2FAS JSON</string>
+    <string name="backupTwoFasMessage">Save authenticators to an unencrypted 2FAS backup file (.2fas). TOTP, HOTP and Steam entries are included; Mobile-OTP and Yandex entries are skipped.</string>
+    <string name="backupBitwardenJson">Export to Bitwarden JSON</string>
+    <string name="backupBitwardenJsonMessage">Save authenticators to an unencrypted Bitwarden vault JSON file for importing into Bitwarden or Bitwarden Authenticator. TOTP entries are included; other types are skipped.</string>
+    <string name="backupBitwardenCsv">Export to Bitwarden CSV</string>
+    <string name="backupBitwardenCsvMessage">Save authenticators to an unencrypted Bitwarden vault CSV file for importing into Bitwarden. TOTP entries are included; other types are skipped.</string>
+    <string name="backupMigrationWarning">Migration exports are unencrypted and may leave your secret keys vulnerable.\n\nThese files are intended for importing into other authenticator apps and cannot be restored as a full Stratum backup. Categories and icons are not included.\n\nContinue?</string>
+
     <!--
         Empty states
     -->

@@ -118,6 +118,16 @@
     <string name="backupUriList">备份至 URI 列表文件</string>
     <string name="backupUriListMessage">将您的身份验证器保存到一个未加密纯文本的 URI 列表文件。此文件与许多其他应用程序和服务兼容。分类和图标将不会被保存。</string>
     <string name="backupUriListWarning">保存为纯文本文件时将不会进行加密，因此您的密钥将会被明文暴露。\n\n应用无法直接通过这个文件恢复备份，且分类和图标设置不会包含在备份中。除非您确定要这么做，否则我们建议您使用加密的备份文件。\n\n您确定要继续吗？</string>
+
+    <string name="backupAegis">导出为 Aegis JSON</string>
+    <string name="backupAegisMessage">将所有身份验证器保存为未加密的 JSON 文件，可导入 Aegis、2FAS、Bitwarden Authenticator 及其他兼容应用。不包含分类和图标。</string>
+    <string name="backupTwoFas">导出为 2FAS JSON</string>
+    <string name="backupTwoFasMessage">将身份验证器保存为未加密的 2FAS 备份文件（.2fas）。包含 TOTP、HOTP 和 Steam 条目；Mobile-OTP 和 Yandex 条目会被跳过。</string>
+    <string name="backupBitwardenJson">导出为 Bitwarden JSON</string>
+    <string name="backupBitwardenJsonMessage">将身份验证器保存为未加密的 Bitwarden 保管库 JSON 文件，可导入 Bitwarden 或 Bitwarden Authenticator。仅包含 TOTP 条目，其他类型会被跳过。</string>
+    <string name="backupBitwardenCsv">导出为 Bitwarden CSV</string>
+    <string name="backupBitwardenCsvMessage">将身份验证器保存为未加密的 Bitwarden 保管库 CSV 文件，可导入 Bitwarden。仅包含 TOTP 条目，其他类型会被跳过。</string>
+    <string name="backupMigrationWarning">迁移导出文件未加密，您的密钥可能会被明文暴露。\n\n这些文件用于导入其他身份验证器应用，不能作为完整的 Stratum 备份恢复。文件不包含分类和图标。\n\n您确定要继续吗？</string>
     <!--
         Empty states
     -->
