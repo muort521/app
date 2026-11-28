@@ -165,6 +165,20 @@ jobs:
           sed -i "s/android:versionCode=\"[^\"]*\"/android:versionCode=\"$VERSION_CODE\"/" "$MANIFEST"
           grep -E 'android:versionName|android:versionCode' "$MANIFEST"
 
+      # Keep RuntimeIdentifiers on the app project itself. Passing it as a
+      # global -p: property also propagates to Stratum.Core (a plain net11.0
+      # library), which then looks for obj/.../android-<abi>/Stratum.Core.dll
+      # and fails with MSB3030.
+      - name: Set target ABI
+        env:
+          PROJECT: ${{ matrix.project }}
+          RIDS: ${{ matrix.rids }}
+        run: |
+          set -euo pipefail
+          CSPROJ="$PROJECT/$PROJECT.csproj"
+          sed -i -E "s#<RuntimeIdentifiers>[^<]*</RuntimeIdentifiers>#<RuntimeIdentifiers>${RIDS}</RuntimeIdentifiers>#" "$CSPROJ"
+          grep -n '<RuntimeIdentifiers>' "$CSPROJ"
+
       - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
@@ -192,15 +206,13 @@ jobs:
       - name: Restore NuGet packages
         env:
           PROJECT: ${{ matrix.project }}
-          RIDS: ${{ matrix.rids }}
         run: |
           set -euo pipefail
-          dotnet restore "$PROJECT/$PROJECT.csproj" -p:RuntimeIdentifiers="$RIDS"
+          dotnet restore "$PROJECT/$PROJECT.csproj"
 
       - name: Build Release APK
         env:
           PROJECT: ${{ matrix.project }}
-          RIDS: ${{ matrix.rids }}
           VERSION_NO: ${{ needs.prepare.outputs.version_no }}
           VERSION_CODE: ${{ needs.prepare.outputs.version_code }}
         run: |
@@ -209,7 +221,6 @@ jobs:
             -c "$CONFIGURATION" \
             -f "$FRAMEWORK" \
             --no-restore \
-            -p:RuntimeIdentifiers="$RIDS" \
             -p:AndroidSdkDirectory="$ANDROID_SDK_ROOT" \
             -p:JavaSdkDirectory="$JAVA_HOME" \
             -p:ApplicationDisplayVersion="$VERSION_NO" \
