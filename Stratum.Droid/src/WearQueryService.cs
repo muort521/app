@@ -11,9 +11,11 @@ using Java.IO;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Stratum.Core.Backup;
 using Stratum.Droid.Persistence.View;
 
 namespace Stratum.Droid
@@ -27,12 +29,14 @@ namespace Stratum.Droid
     public class WearQueryService : WearableListenerService
     {
         private const string GetSyncBundleCapability = "get_sync_bundle";
+        private const string RestoreBackupPath = "restore_backup";
 
         private readonly ILogger _log = Log.ForContext<WearQueryService>();
         private readonly Database _database;
 
         private readonly ICategoryService _categoryService;
         private readonly ICustomIconService _customIconService;
+        private readonly IRestoreService _restoreService;
         private SecureStorageWrapper _secureStorageWrapper;
 
         public WearQueryService()
@@ -41,6 +45,7 @@ namespace Stratum.Droid
 
             _categoryService = Dependencies.Resolve<ICategoryService>();
             _customIconService = Dependencies.Resolve<ICustomIconService>();
+            _restoreService = Dependencies.Resolve<IRestoreService>();
         }
 
         public override void OnCreate()
@@ -80,6 +85,7 @@ namespace Stratum.Droid
                     Username = auth.Username,
                     Period = auth.Period,
                     Digits = auth.Digits,
+                    Counter = auth.Counter,
                     Algorithm = auth.Algorithm,
                     Ranking = auth.Ranking,
                     CopyCount = auth.CopyCount,
@@ -135,9 +141,47 @@ namespace Stratum.Droid
             }
         }
 
+        private async Task ReceiveRestoreAsync(ChannelClient.IChannel channel)
+        {
+            var client = WearableClass.GetChannelClient(this);
+            using var stream = await client.GetInputStreamAsync(channel);
+            using var memory = new MemoryStream();
+
+            var buffer = new byte[8192];
+            int read;
+            while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                memory.Write(buffer, 0, read);
+            }
+
+            var request = JsonSerializer.Deserialize<WearRestoreRequest>(memory.ToArray());
+            if (request?.Backup == null)
+            {
+                throw new InvalidOperationException("Restore request did not contain a backup");
+            }
+
+            var result = await UseDatabaseAsync(() => _restoreService.RestoreAndUpdateAsync(request.Backup));
+            _log.Information("Restored backup from watch: {File}, {Added} added, {Updated} updated",
+                request.FileName, result.AddedAuthenticatorCount, result.UpdatedAuthenticatorCount);
+        }
+
         public override async void OnChannelOpened(ChannelClient.IChannel channel)
         {
             _log.Debug("Wear channel opened: {Path}", channel.Path);
+
+            if (channel.Path == RestoreBackupPath)
+            {
+                try
+                {
+                    await ReceiveRestoreAsync(channel);
+                }
+                catch (Exception e)
+                {
+                    _log.Error(e, "Error restoring backup from watch");
+                }
+
+                return;
+            }
 
             if (channel.Path != GetSyncBundleCapability)
             {

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Android.App;
+using Android.Content;
 using Android.Content.PM;
 using Android.Gms.Common.Apis;
 using Android.Gms.Wearable;
@@ -24,6 +25,7 @@ using Stratum.WearOS.Comparer;
 using Stratum.WearOS.Fragment;
 using Stratum.WearOS.Interface;
 using Stratum.WearOS.Util;
+using Stratum.WearOS.WebDav;
 using FragmentManager = AndroidX.Fragment.App.FragmentManager;
 
 namespace Stratum.WearOS.Activity
@@ -35,6 +37,7 @@ namespace Stratum.WearOS.Activity
         private const string ProtocolVersion = "protocol_v4.0";
         private const string GetSyncBundlePath = "get_sync_bundle";
         private static readonly TimeSpan SyncTimeout = TimeSpan.FromSeconds(60);
+        private static readonly TimeSpan NodeTimeout = TimeSpan.FromSeconds(6);
         
         // Result Keys
         public const string ResultItemClicked = "clicked";
@@ -53,6 +56,7 @@ namespace Stratum.WearOS.Activity
         private FragmentContainerView _fragmentView;
         private LinearLayout _offlineLayout;
         private WearableNavigationDrawerView _categoryList;
+        private ImageButton _webDavButton;
 
         private PreferenceWrapper _preferences;
 
@@ -110,6 +114,13 @@ namespace Stratum.WearOS.Activity
 
         protected override async Task OnResumeAsync()
         {
+            if (WearRestoreState.LocalRestorePending)
+            {
+                WearRestoreState.LocalRestorePending = false;
+                await ReloadCachesAsync();
+                return;
+            }
+
             try
             {
                 await FindServerNode();
@@ -141,6 +152,21 @@ namespace Stratum.WearOS.Activity
             }
         }
         
+        private async Task ReloadCachesAsync()
+        {
+            await Task.WhenAll(_authCache.InitAsync(), _categoryCache.InitAsync(), _customIconCache.InitAsync());
+
+            _authView.Update();
+            _categoryView.Update();
+
+            RunOnUiThread(delegate
+            {
+                NotifyListChanged();
+                _categoryListAdapter?.NotifyDataSetChanged();
+                UpdateCategoryBackNavigation();
+            });
+        }
+
         public void OnFragmentResult(string requestKey, Bundle bundle)
         {
             switch (requestKey)
@@ -159,6 +185,19 @@ namespace Stratum.WearOS.Activity
         public void OnBackStackChanged()
         {
             UpdateCategoryBackNavigation();
+            UpdateWebDavButton();
+        }
+
+        private void UpdateWebDavButton()
+        {
+            if (_webDavButton == null)
+            {
+                return;
+            }
+
+            _webDavButton.Visibility = SupportFragmentManager.BackStackEntryCount == 0
+                ? ViewStates.Visible
+                : ViewStates.Gone;
         }
 
         private string GetDefaultCategoryId()
@@ -185,6 +224,11 @@ namespace Stratum.WearOS.Activity
             _circularProgressLayout = FindViewById<CircularProgressLayout>(Resource.Id.layoutCircularProgress);
             _fragmentView = FindViewById<FragmentContainerView>(Resource.Id.viewFragment);
             _offlineLayout = FindViewById<LinearLayout>(Resource.Id.layoutOffline);
+            _webDavButton = FindViewById<ImageButton>(Resource.Id.buttonWebDav);
+            _webDavButton.Click += delegate
+            {
+                StartActivity(new Intent(this, typeof(WebDavActivity)));
+            };
 
             _categoryList = FindViewById<WearableNavigationDrawerView>(Resource.Id.drawerCategories);
             _categoryListAdapter = new CategoryListAdapter(this, _categoryView);
@@ -194,6 +238,7 @@ namespace Stratum.WearOS.Activity
             _backPressCallback = new BackPressCallback(false);
             _backPressCallback.BackPressed += delegate { SwitchCategory(GetDefaultCategoryId()); };
             OnBackPressedDispatcher.AddCallback(_backPressCallback);
+            UpdateWebDavButton();
         }
 
         private void PeekCategoryListIfEmpty()
@@ -306,10 +351,24 @@ namespace Stratum.WearOS.Activity
 
         private async Task FindServerNode()
         {
-            var capabilityInfo = await WearableClass.GetCapabilityClient(this)
-                .GetCapabilityAsync(ProtocolVersion, CapabilityClient.FilterReachable);
+            try
+            {
+                var query = WearableClass.GetCapabilityClient(this)
+                    .GetCapabilityAsync(ProtocolVersion, CapabilityClient.FilterReachable);
 
-            _serverNode = capabilityInfo.Nodes.MaxBy(n => n.IsNearby);
+                var capabilityInfo = await query.WaitAsync(NodeTimeout);
+                _serverNode = capabilityInfo?.Nodes?.MaxBy(n => n.IsNearby);
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e);
+                _serverNode = null;
+            }
+
+            if (_serverNode == null)
+            {
+                RunOnUiThreadForLaunch(CheckOfflineState);
+            }
         }
 
         private async Task Refresh()

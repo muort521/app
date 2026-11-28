@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="webdavTitle">云备份</string>
+    <string name="webdavEnable">启用 WebDAV</string>
+    <string name="webdavUrl">服务器地址</string>
+    <string name="webdavUrlHint">https://example.com/dav</string>
+    <string name="webdavDirectory">目录</string>
+    <string name="webdavDirectoryHint">Stratum</string>
+    <string name="webdavUsername">用户名</string>
+    <string name="webdavPassword">密码</string>
+    <string name="webdavTrustAll">信任所有证书</string>
+
+    <string name="webdavSave">保存</string>
+    <string name="webdavSaved">已保存</string>
+    <string name="webdavTest">测试连接</string>
+    <string name="webdavTesting">正在测试…</string>
+    <string name="webdavTestOk">连接正常</string>
+    <string name="webdavTestFailed">连接失败：%1$s</string>
+    <string name="webdavNotConfigured">WebDAV 未启用或未配置</string>
+
+    <string name="webdavBackupEncrypted">加密备份</string>
+    <string name="webdavBackupPasswordTitle">备份密码</string>
+    <string name="webdavBackupPasswordHint">密码</string>
+    <string name="webdavBackupPasswordEmpty">密码不能为空</string>
+    <string name="webdavBackupUploading">正在生成并上传加密备份…</string>
+    <string name="webdavBackupSuccess">备份已上传：%1$s</string>
+    <string name="webdavBackupFailed">备份失败：%1$s</string>
+    <string name="webdavNoAuthenticators">没有验证器，请先与手机同步</string>
+
+    <string name="webdavExport">导出账户</string>
+    <string name="webdavExportWarningTitle">未加密导出</string>
+    <string name="webdavExportWarning">文件包含密钥且未加密，继续导出？</string>
+    <string name="webdavExportSelect">导出格式</string>
+    <string name="webdavExportAegis">Aegis JSON</string>
+    <string name="webdavExportTwoFas">2FAS JSON</string>
+    <string name="webdavExportBitwardenJson">Bitwarden Vault JSON</string>
+    <string name="webdavExportBitwardenCsv">Bitwarden Vault CSV</string>
+    <string name="webdavExporting">正在导出…</string>
+    <string name="webdavExportSuccess">导出已上传：%1$s</string>
+    <string name="webdavExportFailed">导出失败：%1$s</string>
+    <string-array name="webdavExportFormats">
+        <item>@string/webdavExportAegis</item>
+        <item>@string/webdavExportTwoFas</item>
+        <item>@string/webdavExportBitwardenJson</item>
+        <item>@string/webdavExportBitwardenCsv</item>
+    </string-array>
+
+    <string name="webdavCloudList">云端备份</string>
+    <string name="webdavListTitle">云端备份</string>
+    <string name="webdavListEmpty">没有云端备份</string>
+    <string name="webdavListFailed">加载备份失败：%1$s</string>
+    <string name="webdavLoading">正在加载…</string>
+    <string name="webdavRefresh">刷新</string>
+    <string name="webdavBack">返回</string>
+    <string name="webdavCancel">取消</string>
+    <string name="webdavDelete">删除</string>
+    <string name="webdavDeleteTitle">删除云端备份</string>
+    <string name="webdavDeleteMessage">确定删除 %1$s？此操作无法撤销。</string>
+    <string name="webdavDeleteFailed">删除失败：%1$s</string>
+    <string name="webdavCloudContentDescription">云备份</string>
+    <string name="webdavDeleteContentDescription">删除云端备份</string>
+
+    <string name="webdavRestore">恢复</string>
+    <string name="webdavRestoreTitle">恢复云端备份</string>
+    <string name="webdavRestoreMessage">将此备份恢复到手机？已有账户会更新，其他账户会保留。</string>
+    <string name="webdavRestorePasswordHint">备份密码</string>
+    <string name="webdavRestorePasswordEmpty">密码不能为空</string>
+    <string name="webdavRestoreDownloading">正在下载并恢复…</string>
+    <string name="webdavRestoreSuccess">已恢复到手表和手机：%1$s</string>
+    <string name="webdavRestoreLocalOnly">已恢复到手表；手机未连接：%1$s</string>
+    <string name="webdavRestoreFailed">恢复失败：%1$s</string>
+    <string name="webdavRestoreUnsupported">仅支持 .stratum 备份恢复</string>
+    <string name="webdavRestoreContentDescription">恢复云端备份</string>
+</resources>

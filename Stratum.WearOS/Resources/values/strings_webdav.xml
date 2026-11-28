@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="webdavTitle">Cloud backup</string>
+    <string name="webdavEnable">Enable WebDAV</string>
+    <string name="webdavUrl">Server URL</string>
+    <string name="webdavUrlHint">https://example.com/dav</string>
+    <string name="webdavDirectory">Folder</string>
+    <string name="webdavDirectoryHint">Stratum</string>
+    <string name="webdavUsername">Username</string>
+    <string name="webdavPassword">Password</string>
+    <string name="webdavTrustAll">Trust all certificates</string>
+
+    <string name="webdavSave">Save</string>
+    <string name="webdavSaved">Saved</string>
+    <string name="webdavTest">Test connection</string>
+    <string name="webdavTesting">Testing...</string>
+    <string name="webdavTestOk">Connection OK</string>
+    <string name="webdavTestFailed">Connection failed: %1$s</string>
+    <string name="webdavNotConfigured">WebDAV is not enabled or configured</string>
+
+    <string name="webdavBackupEncrypted">Encrypted backup</string>
+    <string name="webdavBackupPasswordTitle">Backup password</string>
+    <string name="webdavBackupPasswordHint">Password</string>
+    <string name="webdavBackupPasswordEmpty">Password cannot be empty</string>
+    <string name="webdavBackupUploading">Creating and uploading encrypted backup...</string>
+    <string name="webdavBackupSuccess">Backup uploaded: %1$s</string>
+    <string name="webdavBackupFailed">Backup failed: %1$s</string>
+    <string name="webdavNoAuthenticators">No authenticators. Sync with the phone first.</string>
+
+    <string name="webdavExport">Export accounts</string>
+    <string name="webdavExportWarningTitle">Unencrypted export</string>
+    <string name="webdavExportWarning">The file contains secrets and is not encrypted. Continue?</string>
+    <string name="webdavExportSelect">Export format</string>
+    <string name="webdavExportAegis">Aegis JSON</string>
+    <string name="webdavExportTwoFas">2FAS JSON</string>
+    <string name="webdavExportBitwardenJson">Bitwarden Vault JSON</string>
+    <string name="webdavExportBitwardenCsv">Bitwarden Vault CSV</string>
+    <string name="webdavExporting">Exporting...</string>
+    <string name="webdavExportSuccess">Export uploaded: %1$s</string>
+    <string name="webdavExportFailed">Export failed: %1$s</string>
+    <string-array name="webdavExportFormats">
+        <item>@string/webdavExportAegis</item>
+        <item>@string/webdavExportTwoFas</item>
+        <item>@string/webdavExportBitwardenJson</item>
+        <item>@string/webdavExportBitwardenCsv</item>
+    </string-array>
+
+    <string name="webdavCloudList">Cloud backups</string>
+    <string name="webdavListTitle">Cloud backups</string>
+    <string name="webdavListEmpty">No cloud backups</string>
+    <string name="webdavListFailed">Could not load backups: %1$s</string>
+    <string name="webdavLoading">Loading...</string>
+    <string name="webdavRefresh">Refresh</string>
+    <string name="webdavBack">Back</string>
+    <string name="webdavCancel">Cancel</string>
+    <string name="webdavDelete">Delete</string>
+    <string name="webdavDeleteTitle">Delete cloud backup</string>
+    <string name="webdavDeleteMessage">Delete %1$s? This cannot be undone.</string>
+    <string name="webdavDeleteFailed">Delete failed: %1$s</string>
+    <string name="webdavCloudContentDescription">Cloud backup</string>
+    <string name="webdavDeleteContentDescription">Delete cloud backup</string>
+
+    <string name="webdavRestore">Restore</string>
+    <string name="webdavRestoreTitle">Restore cloud backup</string>
+    <string name="webdavRestoreMessage">Restore this backup to your phone? Existing accounts are updated and other accounts are kept.</string>
+    <string name="webdavRestorePasswordHint">Backup password</string>
+    <string name="webdavRestorePasswordEmpty">Password cannot be empty</string>
+    <string name="webdavRestoreDownloading">Downloading and restoring...</string>
+    <string name="webdavRestoreSuccess">Restored to watch and phone: %1$s</string>
+    <string name="webdavRestoreLocalOnly">Restored to watch. Phone not connected: %1$s</string>
+    <string name="webdavRestoreFailed">Restore failed: %1$s</string>
+    <string name="webdavRestoreUnsupported">Only .stratum backups can be restored</string>
+    <string name="webdavRestoreContentDescription">Restore cloud backup</string>
+</resources>

@@ -97,6 +97,12 @@ namespace Stratum.WearOS.Cache
             return ids;
         }
 
+        public byte[] GetData(string id)
+        {
+            var path = GetIconPath(id);
+            return File.Exists(path) ? File.ReadAllBytes(path) : null;
+        }
+
         public Bitmap GetCachedBitmap(string id)
         {
             return _bitmaps.GetValueOrDefault(id);

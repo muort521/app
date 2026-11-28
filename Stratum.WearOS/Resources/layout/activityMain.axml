@@ -41,6 +41,17 @@
                 android:contentDescription="@string/offline"
                 android:src="@drawable/baseline_cloud_off_24"/>
         </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/buttonWebDav"
+            android:src="@drawable/baseline_cloud_24"
+            android:contentDescription="@string/webdavCloudContentDescription"
+            android:background="?selectableItemBackgroundBorderless"
+            android:padding="6dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"/>
     </FrameLayout>
 
     <androidx.wear.widget.drawer.WearableNavigationDrawerView

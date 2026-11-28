@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?selectableItemBackground"
+    android:paddingStart="6dp"
+    android:paddingEnd="2dp"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp"
+    android:background="@color/colorDarkest"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_weight="1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/textName"
+            android:textColor="?attr/primaryTextColor"
+            android:textSize="10sp"
+            android:singleLine="true"
+            android:ellipsize="middle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/textMeta"
+            android:textColor="?attr/secondaryTextColor"
+            android:textSize="9sp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textRestoreHint"
+        android:text="@string/webdavRestore"
+        android:textColor="?attr/secondaryTextColor"
+        android:textSize="8sp"
+        android:visibility="gone"
+        android:layout_marginEnd="2dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <ImageButton
+        android:id="@+id/buttonDelete"
+        android:src="@drawable/baseline_delete_24"
+        android:contentDescription="@string/webdavDeleteContentDescription"
+        android:background="?selectableItemBackgroundBorderless"
+        android:padding="2dp"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="2dp"
+        android:layout_width="24dp"
+        android:layout_height="24dp"/>
+
+</LinearLayout>

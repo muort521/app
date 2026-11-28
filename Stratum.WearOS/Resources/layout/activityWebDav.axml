@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.widget.FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layoutWebDavSwipe"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.wear.widget.BoxInsetLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="6dp">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="4dp"
+            app:layout_boxedEdges="all"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:text="@string/webdavTitle"
+                android:textColor="?attr/primaryTextColor"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:singleLine="true"
+                android:gravity="center"
+                android:layout_marginBottom="2dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:fillViewport="true"
+                android:scrollbars="vertical">
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <CheckBox
+                        android:id="@+id/checkEnabled"
+                        android:text="@string/webdavEnable"
+                        android:textColor="?attr/primaryTextColor"
+                        android:textSize="12sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                    <EditText
+                        android:id="@+id/editUrl"
+                        android:hint="@string/webdavUrl"
+                        android:inputType="textUri"
+                        android:singleLine="true"
+                        android:textColor="?attr/primaryTextColor"
+                        android:textColorHint="?attr/secondaryTextColor"
+                        android:textSize="12sp"
+                        android:layout_marginBottom="6dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                    <EditText
+                        android:id="@+id/editDirectory"
+                        android:hint="@string/webdavDirectory"
+                        android:inputType="text"
+                        android:singleLine="true"
+                        android:textColor="?attr/primaryTextColor"
+                        android:textColorHint="?attr/secondaryTextColor"
+                        android:textSize="12sp"
+                        android:layout_marginBottom="6dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                    <EditText
+                        android:id="@+id/editUsername"
+                        android:hint="@string/webdavUsername"
+                        android:inputType="text"
+                        android:singleLine="true"
+                        android:textColor="?attr/primaryTextColor"
+                        android:textColorHint="?attr/secondaryTextColor"
+                        android:textSize="12sp"
+                        android:layout_marginBottom="6dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                    <EditText
+                        android:id="@+id/editPassword"
+                        android:hint="@string/webdavPassword"
+                        android:inputType="textPassword"
+                        android:singleLine="true"
+                        android:textColor="?attr/primaryTextColor"
+                        android:textColorHint="?attr/secondaryTextColor"
+                        android:textSize="12sp"
+                        android:layout_marginBottom="6dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                    <CheckBox
+                        android:id="@+id/checkTrustAll"
+                        android:text="@string/webdavTrustAll"
+                        android:textColor="?attr/primaryTextColor"
+                        android:textSize="12sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                    <Button
+                        android:textColor="@color/colorLighter"
+                        android:backgroundTint="@color/colorDark"
+                        android:id="@+id/buttonSave"
+                        android:text="@string/webdavSave"
+                        android:textSize="12sp"
+                        android:layout_marginTop="6dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"/>
+
+                    <Button
+                        android:textColor="@color/colorLighter"
+                        android:backgroundTint="@color/colorDark"
+                        android:id="@+id/buttonTest"
+                        android:text="@string/webdavTest"
+                        android:textSize="12sp"
+                        android:layout_marginTop="6dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"/>
+
+                    <TextView
+                        android:id="@+id/textStatus"
+                        android:textColor="?attr/secondaryTextColor"
+                        android:textSize="11sp"
+                        android:layout_marginTop="6dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                    <Button
+                        android:textColor="@color/colorLighter"
+                        android:backgroundTint="@color/colorDark"
+                        android:id="@+id/buttonBackup"
+                        android:text="@string/webdavBackupEncrypted"
+                        android:textSize="12sp"
+                        android:layout_marginTop="14dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"/>
+
+                    <Button
+                        android:textColor="@color/colorLighter"
+                        android:backgroundTint="@color/colorDark"
+                        android:id="@+id/buttonExport"
+                        android:text="@string/webdavExport"
+                        android:textSize="12sp"
+                        android:layout_marginTop="6dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"/>
+
+                    <Button
+                        android:textColor="@color/colorLighter"
+                        android:backgroundTint="@color/colorDark"
+                        android:id="@+id/buttonCloudList"
+                        android:text="@string/webdavCloudList"
+                        android:textSize="12sp"
+                        android:layout_marginTop="6dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"/>
+
+                    <Button
+                        android:textColor="@color/colorLighter"
+                        android:backgroundTint="@color/colorDark"
+                        android:id="@+id/buttonBack"
+                        android:text="@string/webdavBack"
+                        android:textSize="12sp"
+                        android:layout_marginTop="6dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"/>
+
+                </LinearLayout>
+            </ScrollView>
+        </LinearLayout>
+    </androidx.wear.widget.BoxInsetLayout>
+</android.widget.FrameLayout>

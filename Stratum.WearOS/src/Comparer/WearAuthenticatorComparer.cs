@@ -55,8 +55,8 @@ namespace Stratum.WearOS.Comparer
 
             var isEqual = !differentCategories && x.Type == y.Type && x.Secret == y.Secret && x.Icon == y.Icon &&
                           x.Issuer == y.Issuer && x.Username == y.Username && x.Period == y.Period &&
-                          x.Digits == y.Digits && x.Algorithm == y.Algorithm && x.Pin == y.Pin &&
-                          x.Ranking == y.Ranking && x.CopyCount == y.CopyCount;
+                          x.Digits == y.Digits && x.Counter == y.Counter && x.Algorithm == y.Algorithm &&
+                          x.Pin == y.Pin && x.Ranking == y.Ranking && x.CopyCount == y.CopyCount;
 
             return isEqual;
         }
@@ -72,6 +72,7 @@ namespace Stratum.WearOS.Comparer
             hash.Add(obj.Username);
             hash.Add(obj.Period);
             hash.Add(obj.Digits);
+            hash.Add(obj.Counter);
             hash.Add(obj.Algorithm);
             hash.Add(obj.Categories);
             hash.Add(obj.Ranking);

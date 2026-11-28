@@ -17,6 +17,7 @@ namespace Stratum.Droid.Shared.Wear
         public string Username { get; set; }
         public int Period { get; set; }
         public int Digits { get; set; }
+        public long Counter { get; set; }
         public HashAlgorithm Algorithm { get; set; }
         public int Ranking { get; set; }
         public int CopyCount { get; set; }

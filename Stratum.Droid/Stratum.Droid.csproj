@@ -6,8 +6,8 @@
         <Nullable>disable</Nullable>
         <ImplicitUsings>disable</ImplicitUsings>
         <ApplicationId>com.stratumauth.app</ApplicationId>
-        <ApplicationVersion>1</ApplicationVersion>
-        <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+        <ApplicationVersion>10704</ApplicationVersion>
+        <ApplicationDisplayVersion>1.7.4</ApplicationDisplayVersion>
         <LangVersion>latest</LangVersion>
         <AndroidVersionCodePattern>{versionCode}</AndroidVersionCodePattern>
     </PropertyGroup>
